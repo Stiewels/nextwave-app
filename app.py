@@ -17,14 +17,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 2. DATABASE SETUP ---
-# Create a physical folder on your Linux machine to save the chart images
 os.makedirs("history_images", exist_ok=True)
-
-# Connect to the SQLite database (this creates a file named nextwave_history.db)
 conn = sqlite3.connect("nextwave_history.db", check_same_thread=False)
 c = conn.cursor()
 
-# Create the storage table if it doesn't exist yet
 c.execute('''
     CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,10 +41,7 @@ conn.commit()
 # --- 3. SIDEBAR NAVIGATION ---
 with st.sidebar:
     st.header("Settings")
-    api_key = st.text_input("Gemini API Key:", type="password")
     st.divider()
-    
-    # We change the buttons to a Radio menu so it acts like a real website menu!
     page = st.radio("Navigation", ["📊 Dashboard", "🕒 History"])
 
 # --- 4. DASHBOARD PAGE ---
@@ -68,9 +61,11 @@ if page == "📊 Dashboard":
             
         with right_col:
             if analyze_btn:
-                if not api_key:
-                    st.error("⚠️ Please enter your API Key in the sidebar first!")
+                # Retrieve the API key securely from Streamlit Cloud Secrets
+                if "GEMINI_API_KEY" not in st.secrets:
+                    st.error("⚠️ Gemini API Key not found in Streamlit Secrets! Please add GEMINI_API_KEY in your Streamlit Cloud settings.")
                 else:
+                    api_key = st.secrets["GEMINI_API_KEY"]
                     with st.spinner("Calculating key levels and volatility..."):
                         try:
                             client = genai.Client(api_key=api_key)
@@ -102,13 +97,11 @@ if page == "📊 Dashboard":
                             ai_data = json.loads(clean_text)
                             
                             # --- SAVE DATA TO SQLITE ---
-                            # 1. Save the image to the folder we created
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             safe_time = datetime.now().strftime("%Y%m%d_%H%M%S")
                             image_path = f"history_images/chart_{safe_time}.png"
                             image.save(image_path)
                             
-                            # 2. Insert the AI math into the database
                             c.execute('''
                                 INSERT INTO history 
                                 (date_saved, image_path, trend, confidence, entry_zone, stop_loss, take_profit, support, resistance, notes)
@@ -146,14 +139,12 @@ if page == "📊 Dashboard":
 elif page == "🕒 History":
     st.markdown("## 🕒 Trade Analysis History")
     
-    # Grab all saved data from the database, newest to oldest
     c.execute("SELECT * FROM history ORDER BY id DESC")
     saved_analyses = c.fetchall()
     
     if not saved_analyses:
         st.info("No chart history found yet. Go to the Dashboard and analyze a chart!")
     else:
-        # Loop through the database and display each saved record inside a dropdown box
         for record in saved_analyses:
             with st.expander(f"{record[1]} - Trend: {record[3]} (Confidence: {record[4]})"):
                 hist_col1, hist_col2 = st.columns([1, 2])
