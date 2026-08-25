@@ -34,14 +34,15 @@ c.execute('''CREATE TABLE IF NOT EXISTS users (
 conn.commit()
 
 # --- 3. AUTHENTICATION & TRIAL LOGIC ---
-# Handles Google Login but allows custom trial logic below
+if not st.user.is_logged_in:
+    st.info("👋 Welcome to Nextwave Technology! Please log in to start your 7-day free trial.")
+    if st.button("Log in with Google", type="primary"):
+        st.login()
+    st.stop()
+
 add_auth(required=False, show_redirect_button=False)
 
-user_email = st.session_state.get("email")
-
-if not user_email:
-    st.info("👋 Welcome to Nextwave Technology! Please log in via the sidebar to start your 7-day free trial.")
-    st.stop()
+user_email = st.user.email
 
 # Verify Status
 is_admin = (user_email == st.secrets.get("ADMIN_EMAIL", ""))
