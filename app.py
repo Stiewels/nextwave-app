@@ -52,7 +52,7 @@ if not is_admin and not is_subscribed:
     c.execute("SELECT first_login_date FROM users WHERE email = ?", (user_email,))
     user_record = c.fetchone()
     
-    if not user_record: # First time logging in!
+    if not user_record: # First time logging in
         today = datetime.now().strftime("%Y-%m-%d")
         c.execute("INSERT INTO users (email, first_login_date) VALUES (?, ?)", (user_email, today))
         conn.commit()
@@ -79,73 +79,102 @@ with st.sidebar:
 
 # --- 5. DASHBOARD PAGE ---
 if page == "📊 Dashboard":
-    st.markdown("## 🌊 NEXTWAVE TECHNOLOGY")
-    st.markdown("### AI Chart Analysis for XAUUSD & Major Forex Pairs")
+    # Professional Header
+    st.markdown("""
+        <div style='text-align: left; margin-bottom: 20px;'>
+            <h1 style='color: #FFFFFF; font-size: 32px; font-weight: 600; letter-spacing: 1px;'>
+                NEXTWAVE TECHNOLOGY
+            </h1>
+            <p style='color: #8B949E; font-size: 16px;'>Institutional-Grade AI Analysis for XAUUSD & Major Forex Pairs</p>
+        </div>
+    """, unsafe_allow_html=True)
+    st.divider()
 
-    uploaded_file = st.file_uploader("Upload Chart Screenshot (PNG/JPG)", type=["png", "jpg", "jpeg"])
-
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        left_col, right_col = st.columns([1.2, 2])
-        
-        with left_col:
-            st.image(image, caption="Chart ready for analysis", use_container_width=True)
-            analyze_btn = st.button("LAUNCH NEXTWAVE AI", type="primary")
+    left_col, right_col = st.columns([1, 1.8], gap="large")
+    
+    # Structured Input Card (Left Column)
+    with left_col:
+        with st.container(border=True):
+            st.markdown("### 📁 File Upload Center")
+            st.caption("Supported formats: PNG, JPG (Max 200MB)")
             
-        with right_col:
-            if analyze_btn:
-                api_key = st.secrets["GEMINI_API_KEY"]
-                with st.spinner("Calculating key levels and volatility..."):
-                    try:
-                        client = genai.Client(api_key=api_key)
-                        prompt = """
-                        Analyze this gold (XAUUSD) trading chart. 
-                        You must respond ONLY with a valid JSON object. Do not include markdown formatting or extra text.
-                        Ensure your stop loss and take profit suggestions account for ATR (Average True Range) volatility.
-                        
-                        Use this exact JSON structure:
-                        {
-                            "trend": "BULLISH", "confidence": "85%", "entry_zone": "4605.50 - 4610.00",
-                            "stop_loss": "4590.00", "take_profit": "4640.00", "support": "4600.00",
-                            "resistance": "4625.00", "notes": "One concise sentence of trading advice."
-                        }
-                        """
-                        response = client.models.generate_content(model="models/gemini-3.6-flash", contents=[prompt, image])
-                        ai_data = json.loads(response.text.replace('```json', '').replace('```', '').strip())
-                        
-                        # Save Data
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        safe_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        image_path = f"history_images/chart_{safe_time}.png"
-                        image.save(image_path)
-                        
-                        c.execute('''INSERT INTO history 
-                            (date_saved, image_path, trend, confidence, entry_zone, stop_loss, take_profit, support, resistance, notes)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                            (timestamp, image_path, ai_data['trend'], ai_data['confidence'], 
-                              ai_data['entry_zone'], ai_data['stop_loss'], ai_data['take_profit'], 
-                              ai_data['support'], ai_data['resistance'], ai_data['notes']))
-                        conn.commit()
-                        
-                        # Display Cards
-                        st.success("Analysis Complete & Saved to History!")
-                        card1, card2, card3 = st.columns(3)
-                        with card1:
-                            st.markdown("#### 🧭 Trend & Entry")
-                            st.write(f"**Trend:** {ai_data['trend']}")
-                            st.write(f"**Confidence:** {ai_data['confidence']}")
+            uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
+            
+            if uploaded_file is not None:
+                image = Image.open(uploaded_file)
+                st.image(image, use_container_width=True)
+                
+                # Styled Button
+                analyze_btn = st.button("LAUNCH PROFESSIONAL ANALYSIS", type="primary", use_container_width=True)
+
+    # Premium Results Area (Right Column)
+    with right_col:
+        if uploaded_file is not None and analyze_btn:
+            api_key = st.secrets["GEMINI_API_KEY"]
+            with st.spinner("Analyzing market structure and volatility..."):
+                try:
+                    client = genai.Client(api_key=api_key)
+                    prompt = """
+                    Analyze this gold (XAUUSD) trading chart. 
+                    You must respond ONLY with a valid JSON object. Do not include markdown formatting or extra text.
+                    Ensure your stop loss and take profit suggestions account for ATR (Average True Range) volatility.
+                    
+                    Use this exact JSON structure:
+                    {
+                        "trend": "BULLISH", "confidence": "85%", "entry_zone": "4605.50 - 4610.00",
+                        "stop_loss": "4590.00", "take_profit": "4640.00", "support": "4600.00",
+                        "resistance": "4625.00", "notes": "One concise sentence of trading advice."
+                    }
+                    """
+                    response = client.models.generate_content(model="models/gemini-3.6-flash", contents=[prompt, image])
+                    ai_data = json.loads(response.text.replace('```json', '').replace('```', '').strip())
+                    
+                    # Save Data
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    safe_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    image_path = f"history_images/chart_{safe_time}.png"
+                    image.save(image_path)
+                    
+                    c.execute('''INSERT INTO history 
+                        (date_saved, image_path, trend, confidence, entry_zone, stop_loss, take_profit, support, resistance, notes)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                        (timestamp, image_path, ai_data['trend'], ai_data['confidence'], 
+                          ai_data['entry_zone'], ai_data['stop_loss'], ai_data['take_profit'], 
+                          ai_data['support'], ai_data['resistance'], ai_data['notes']))
+                    conn.commit()
+                    
+                    # Card-Based Data Visualization
+                    st.success("Analysis Complete & Saved to Secure Database", icon="✅")
+                    
+                    # Top Metric Cards
+                    card1, card2, card3 = st.columns(3)
+                    
+                    with card1:
+                        with st.container(border=True):
+                            st.markdown("<h4 style='color: #0052FF;'>📈 Trend & Entry</h4>", unsafe_allow_html=True)
+                            st.metric(label="Market Trend", value=ai_data['trend'])
+                            st.metric(label="AI Confidence", value=ai_data['confidence'])
                             st.write(f"**Entry Zone:** {ai_data['entry_zone']}")
-                        with card2:
-                            st.markdown("#### 🛡️ Risk Management")
-                            st.write(f"**Stop Loss:** {ai_data['stop_loss']}")
-                            st.write(f"**Support:** {ai_data['support']}")
-                        with card3:
-                            st.markdown("#### 🎯 Targets")
-                            st.write(f"**Take Profit:** {ai_data['take_profit']}")
-                            st.write(f"**Resistance:** {ai_data['resistance']}")
-                        st.info(f"**AI Insight:** {ai_data['notes']}")
-                    except Exception as e:
-                        st.error(f"Error parsing AI response: {e}")
+                            
+                    with card2:
+                        with st.container(border=True):
+                            st.markdown("<h4 style='color: #0052FF;'>🛡️ Risk Limits</h4>", unsafe_allow_html=True)
+                            st.metric(label="Stop Loss", value=ai_data['stop_loss'])
+                            st.metric(label="Support Lvl", value=ai_data['support'])
+                            
+                    with card3:
+                        with st.container(border=True):
+                            st.markdown("<h4 style='color: #0052FF;'>🎯 Targets</h4>", unsafe_allow_html=True)
+                            st.metric(label="Take Profit", value=ai_data['take_profit'])
+                            st.metric(label="Resistance Lvl", value=ai_data['resistance'])
+                            
+                    # AI Insights Bottom Card
+                    with st.container(border=True):
+                        st.markdown("<h4 style='color: #0052FF;'>🧠 AI Insights Report</h4>", unsafe_allow_html=True)
+                        st.info(ai_data['notes'], icon="💡")
+                        
+                except Exception as e:
+                    st.error(f"Error parsing AI response: {e}")
 
 # --- 6. HISTORY PAGE ---
 elif page == "🕒 History":
