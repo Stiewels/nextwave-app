@@ -7,17 +7,20 @@ import os
 from datetime import datetime
 from st_paywall import add_auth
 
-# --- 1. PAGE SETUP & ADVANCED CSS ---
+# --- 1. PAGE SETUP & SIGNATURE BLUE CSS ---
 st.set_page_config(page_title="Nextwave AI | Pro", page_icon="🌊", layout="wide")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0b0f19; color: #e2e8f0; }
+    
+    /* Signature Blue Buttons */
     .stButton>button[kind="primary"] { 
         background: linear-gradient(90deg, #0052FF 0%, #1E40AF 100%);
         color: white; width: 100%; border-radius: 4px; border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
     }
     .stButton>button[kind="primary"]:hover { background: #1E40AF; border: 1px solid #60A5FA; }
+    
     [data-testid="stSidebar"] { background-color: #111827; border-right: 1px solid #1f2937; }
     .metric-label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; font-weight: 600; margin-bottom: -10px; }
     .val-green { color: #10b981; font-size: 1.5rem; font-weight: 700; }
@@ -46,8 +49,8 @@ conn.commit()
 
 # --- 3. SECURE AUTHENTICATION & TRIAL LOGIC ---
 if not st.user.is_logged_in:
-    st.markdown("<h2 style='text-align: center; margin-top: 10vh;'>🌊 NEXTWAVE TECHNOLOGY</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #8B949E;'>Institutional Market Analysis. Please log in to start your 7-day free trial.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; margin-top: 10vh; color: #3b82f6;'>🌊 NEXTWAVE TECHNOLOGY</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #8B949E;'>Transparent, Institutional-Grade Market Analysis. Log in to start your 7-day free trial.</p>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button("Log in with Google", type="primary"):
@@ -92,14 +95,15 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
         <p style='font-size: 0.7rem; color: #6b7280; text-align: center;'>
-        For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results.
+        <b>Honest Trading Education.</b><br>
+        For educational purposes only. Not financial advice.
         </p>
     """, unsafe_allow_html=True)
 
 # --- 5. MARKET ANALYZER (DASHBOARD) ---
 if page == "📊 Market Analyzer":
     st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Precision Market Analyzer</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Advanced SMC multi-tier target and risk execution scan.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Institutional execution scans paired with transparent educational insights.</p>", unsafe_allow_html=True)
     
     left_col, right_col = st.columns([1, 1.8], gap="large")
     
@@ -115,15 +119,16 @@ if page == "📊 Market Analyzer":
 
     with right_col:
         if uploaded_file is None:
-            st.info("Awaiting chart data. Upload a screenshot to generate multi-tier execution targets.", icon="ℹ️")
+            st.info("Awaiting chart data. Upload a screenshot to generate execution targets and mentorship lessons.", icon="ℹ️")
             
         elif uploaded_file is not None and analyze_btn:
             api_key = st.secrets["GEMINI_API_KEY"]
-            with st.spinner("Calculating liquidity arrays, ATR volatility, and multi-tier targets..."):
+            with st.spinner("Analyzing market structure, volatility, and generating educational breakdown..."):
                 try:
                     client = genai.Client(api_key=api_key)
+                    # Enhanced Prompt with Educational Mentorship
                     prompt = """
-                    Analyze this XAUUSD/Forex chart as an institutional execution trader using Smart Money Concepts (SMC) and ATR volatility.
+                    Analyze this XAUUSD/Forex chart as an ethical institutional trading mentor using Smart Money Concepts (SMC) and ATR volatility.
                     Respond ONLY with a valid JSON object matching this exact structure:
                     {
                         "trend": "BULLISH/BEARISH/RANGING", 
@@ -132,13 +137,13 @@ if page == "📊 Market Analyzer":
                         "entry_zone": "Price - Price",
                         "stop_loss": "Price", 
                         "invalidation_level": "Price",
-                        "tp1": "Price (Conservative Target)", 
-                        "tp2": "Price (Standard Target)", 
-                        "tp3": "Price (Extended Liquidity Sweep Target)",
+                        "tp1": "Price", 
+                        "tp2": "Price", 
+                        "tp3": "Price",
                         "risk_reward": "1:3.5",
                         "support": "Price", 
                         "resistance": "Price", 
-                        "notes": "One technical sentence explaining the SMC entry rationale."
+                        "mentorship_lesson": "A detailed, educational explanation teaching the user WHY this specific setup formed, breaking down the liquidity sweep or order block so they learn while they trade."
                     }
                     """
                     response = client.models.generate_content(model="models/gemini-3.6-flash", contents=[prompt, image])
@@ -155,7 +160,7 @@ if page == "📊 Market Analyzer":
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
                         (timestamp, image_path, ai_data['trend'], ai_data['confidence'], 
                           ai_data['entry_zone'], ai_data['stop_loss'], ai_data['tp2'], 
-                          ai_data['support'], ai_data['resistance'], ai_data['notes']))
+                          ai_data['support'], ai_data['resistance'], ai_data['mentorship_lesson']))
                     conn.commit()
                     
                     st.success(f"Precision scan completed at {timestamp}", icon="✅")
@@ -170,7 +175,7 @@ if page == "📊 Market Analyzer":
                     with c2:
                         with st.container(border=True):
                             st.markdown("<p class='metric-label'>Execution Style</p>", unsafe_allow_html=True)
-                            st.markdown(f"<p style='font-size: 1.1rem; font-weight: 600; color: #60A5FA;'>{ai_data['entry_type']}</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='font-size: 1.1rem; font-weight: 600; color: #3b82f6;'>{ai_data['entry_type']}</p>", unsafe_allow_html=True)
                     with c3:
                         with st.container(border=True):
                             st.markdown("<p class='metric-label'>Risk / Reward</p>", unsafe_allow_html=True)
@@ -207,10 +212,10 @@ if page == "📊 Market Analyzer":
                             st.markdown("<p class='metric-label'>TP 3 (Extended)</p>", unsafe_allow_html=True)
                             st.markdown(f"<p class='val-green'>{ai_data['tp3']}</p>", unsafe_allow_html=True)
                             
-                    # Insight Card
+                    # Educational Mentor Card
                     with st.container(border=True):
-                        st.markdown("<p class='metric-label' style='color: #60A5FA;'>🧠 Setup Rationale</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p style='font-size: 1.1rem; padding-top: 5px;'>{ai_data['notes']}</p>", unsafe_allow_html=True)
+                        st.markdown("<p class='metric-label' style='color: #3b82f6;'>🎓 Mentor's Lesson: Learn While You Trade</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 1.05rem; padding-top: 5px; line-height: 1.6;'>{ai_data['mentorship_lesson']}</p>", unsafe_allow_html=True)
                         
                 except Exception as e:
                     st.error(f"System Error parsing output: {e}")
@@ -218,14 +223,14 @@ if page == "📊 Market Analyzer":
     # Professional Footer Disclaimer
     st.markdown("""
         <div class="disclaimer-box">
-            <b>Disclaimer:</b> For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results. Trading leveraged assets carries risk.
+            <b>Nextwave Transparency Commitment:</b> For educational and informational purposes only. Not financial advice. Designed to help traders learn institutional price action safely.
         </div>
     """, unsafe_allow_html=True)
 
 # --- 6. TRADE JOURNAL (HISTORY) ---
 elif page == "📓 Trade Journal":
-    st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Trade Journal & Logs</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Historical records of all precision scans.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Trade Journal & Learning Logs</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Review past precision scans and trade lessons.</p>", unsafe_allow_html=True)
     
     c.execute("SELECT * FROM history ORDER BY id DESC")
     records = c.fetchall()
@@ -241,13 +246,12 @@ elif page == "📓 Trade Journal":
                 with j_col2:
                     st.write(f"**Entry Zone:** `{record[5]}`")
                     st.write(f"**Stop Loss:** `{record[6]}`")
-                    st.write(f"**Take Profit (TP2):** `{record[7]}`")
+                    st.write(f"**Take Profit:** `{record[7]}`")
                     st.write(f"**Support:** `{record[8]}` | **Resistance:** `{record[9]}`")
-                    st.info(f"**Rationale:** {record[10]}")
+                    st.info(f"**Mentor Lesson:** {record[10]}")
                     
-    # Professional Footer Disclaimer
     st.markdown("""
         <div class="disclaimer-box">
-            <b>Disclaimer:</b> For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results.
+            <b>Disclaimer:</b> For educational and informational purposes only. Not financial advice.
         </div>
     """, unsafe_allow_html=True)
