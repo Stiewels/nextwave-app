@@ -24,6 +24,10 @@ st.markdown("""
     .val-red { color: #ef4444; font-size: 1.5rem; font-weight: 700; }
     .val-blue { color: #3b82f6; font-size: 1.5rem; font-weight: 700; }
     .val-white { color: #ffffff; font-size: 1.5rem; font-weight: 700; }
+    .disclaimer-box { 
+        font-size: 0.75rem; color: #6b7280; text-align: center; padding: 15px; 
+        border-top: 1px solid #1f2937; margin-top: 40px; 
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -84,6 +88,13 @@ with st.sidebar:
         st.success("👑 Master Admin Active", icon="✔️")
     st.divider()
     page = st.radio("MAIN MENU", ["📊 Market Analyzer", "📓 Trade Journal"])
+    
+    st.markdown("---")
+    st.markdown("""
+        <p style='font-size: 0.7rem; color: #6b7280; text-align: center;'>
+        For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results.
+        </p>
+    """, unsafe_allow_html=True)
 
 # --- 5. MARKET ANALYZER (DASHBOARD) ---
 if page == "📊 Market Analyzer":
@@ -111,7 +122,6 @@ if page == "📊 Market Analyzer":
             with st.spinner("Calculating liquidity arrays, ATR volatility, and multi-tier targets..."):
                 try:
                     client = genai.Client(api_key=api_key)
-                    # Advanced Multi-Tier Prompt
                     prompt = """
                     Analyze this XAUUSD/Forex chart as an institutional execution trader using Smart Money Concepts (SMC) and ATR volatility.
                     Respond ONLY with a valid JSON object matching this exact structure:
@@ -205,6 +215,13 @@ if page == "📊 Market Analyzer":
                 except Exception as e:
                     st.error(f"System Error parsing output: {e}")
 
+    # Professional Footer Disclaimer
+    st.markdown("""
+        <div class="disclaimer-box">
+            <b>Disclaimer:</b> For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results. Trading leveraged assets carries risk.
+        </div>
+    """, unsafe_allow_html=True)
+
 # --- 6. TRADE JOURNAL (HISTORY) ---
 elif page == "📓 Trade Journal":
     st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Trade Journal & Logs</h2>", unsafe_allow_html=True)
@@ -227,3 +244,10 @@ elif page == "📓 Trade Journal":
                     st.write(f"**Take Profit (TP2):** `{record[7]}`")
                     st.write(f"**Support:** `{record[8]}` | **Resistance:** `{record[9]}`")
                     st.info(f"**Rationale:** {record[10]}")
+                    
+    # Professional Footer Disclaimer
+    st.markdown("""
+        <div class="disclaimer-box">
+            <b>Disclaimer:</b> For educational and informational purposes only. Not financial advice. Past performance does not guarantee future results.
+        </div>
+    """, unsafe_allow_html=True)
