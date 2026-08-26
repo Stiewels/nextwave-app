@@ -12,25 +12,18 @@ st.set_page_config(page_title="Nextwave AI | Pro", page_icon="🌊", layout="wid
 
 st.markdown("""
     <style>
-    /* Institutional Dark Theme */
     .stApp { background-color: #0b0f19; color: #e2e8f0; }
-    
-    /* Sleek Primary Buttons */
     .stButton>button[kind="primary"] { 
         background: linear-gradient(90deg, #0052FF 0%, #1E40AF 100%);
         color: white; width: 100%; border-radius: 4px; border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
     }
     .stButton>button[kind="primary"]:hover { background: #1E40AF; border: 1px solid #60A5FA; }
-    
-    /* Clean Sidebar */
     [data-testid="stSidebar"] { background-color: #111827; border-right: 1px solid #1f2937; }
-    
-    /* Metric Card Text Formatting */
     .metric-label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; font-weight: 600; margin-bottom: -10px; }
-    .val-green { color: #10b981; font-size: 1.8rem; font-weight: 700; }
-    .val-red { color: #ef4444; font-size: 1.8rem; font-weight: 700; }
-    .val-blue { color: #3b82f6; font-size: 1.8rem; font-weight: 700; }
-    .val-white { color: #ffffff; font-size: 1.8rem; font-weight: 700; }
+    .val-green { color: #10b981; font-size: 1.5rem; font-weight: 700; }
+    .val-red { color: #ef4444; font-size: 1.5rem; font-weight: 700; }
+    .val-blue { color: #3b82f6; font-size: 1.5rem; font-weight: 700; }
+    .val-white { color: #ffffff; font-size: 1.5rem; font-weight: 700; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -94,8 +87,8 @@ with st.sidebar:
 
 # --- 5. MARKET ANALYZER (DASHBOARD) ---
 if page == "📊 Market Analyzer":
-    st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Market Analyzer Pipeline</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Upload XAUUSD or Forex charts for AI-driven structural analysis.</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Precision Market Analyzer</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Advanced SMC multi-tier target and risk execution scan.</p>", unsafe_allow_html=True)
     
     left_col, right_col = st.columns([1, 1.8], gap="large")
     
@@ -107,28 +100,35 @@ if page == "📊 Market Analyzer":
             if uploaded_file is not None:
                 image = Image.open(uploaded_file)
                 st.image(image, use_container_width=True)
-                analyze_btn = st.button("EXECUTE ANALYSIS SCAN", type="primary", use_container_width=True)
+                analyze_btn = st.button("EXECUTE PRECISION SCAN", type="primary", use_container_width=True)
 
     with right_col:
         if uploaded_file is None:
-            st.info("Awaiting chart data. Upload a screenshot to generate liquidity and structural analysis.", icon="ℹ️")
+            st.info("Awaiting chart data. Upload a screenshot to generate multi-tier execution targets.", icon="ℹ️")
             
         elif uploaded_file is not None and analyze_btn:
             api_key = st.secrets["GEMINI_API_KEY"]
-            with st.spinner("Scanning for liquidity sweeps and structural breaks..."):
+            with st.spinner("Calculating liquidity arrays, ATR volatility, and multi-tier targets..."):
                 try:
                     client = genai.Client(api_key=api_key)
-                    # Advanced Prompting for SMC & ATR
+                    # Advanced Multi-Tier Prompt
                     prompt = """
-                    Analyze this XAUUSD/Forex chart as an institutional algorithmic trader.
-                    Specifically look for Smart Money Concepts (SMC) including Fair Value Gaps (FVG), Break of Structure (BoS), and recent Liquidity Sweeps.
-                    Ensure Stop Loss and Take Profit levels factor in ATR (Average True Range) volatility to avoid premature stop-outs.
-                    
-                    Respond ONLY with a valid JSON object matching this exact structure exactly:
+                    Analyze this XAUUSD/Forex chart as an institutional execution trader using Smart Money Concepts (SMC) and ATR volatility.
+                    Respond ONLY with a valid JSON object matching this exact structure:
                     {
-                        "trend": "BULLISH/BEARISH/RANGING", "confidence": "XX%", "entry_zone": "Price - Price",
-                        "stop_loss": "Price", "take_profit": "Price", "support": "Price",
-                        "resistance": "Price", "notes": "One highly technical sentence explaining the setup based on SMC and liquidity."
+                        "trend": "BULLISH/BEARISH/RANGING", 
+                        "confidence": "XX%", 
+                        "entry_type": "Conservative (Order Block Retest) / Aggressive (FVG Entry)",
+                        "entry_zone": "Price - Price",
+                        "stop_loss": "Price", 
+                        "invalidation_level": "Price",
+                        "tp1": "Price (Conservative Target)", 
+                        "tp2": "Price (Standard Target)", 
+                        "tp3": "Price (Extended Liquidity Sweep Target)",
+                        "risk_reward": "1:3.5",
+                        "support": "Price", 
+                        "resistance": "Price", 
+                        "notes": "One technical sentence explaining the SMC entry rationale."
                     }
                     """
                     response = client.models.generate_content(model="models/gemini-3.6-flash", contents=[prompt, image])
@@ -144,46 +144,63 @@ if page == "📊 Market Analyzer":
                         (date_saved, image_path, trend, confidence, entry_zone, stop_loss, take_profit, support, resistance, notes)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
                         (timestamp, image_path, ai_data['trend'], ai_data['confidence'], 
-                          ai_data['entry_zone'], ai_data['stop_loss'], ai_data['take_profit'], 
+                          ai_data['entry_zone'], ai_data['stop_loss'], ai_data['tp2'], 
                           ai_data['support'], ai_data['resistance'], ai_data['notes']))
                     conn.commit()
                     
-                    # Display Premium Results
-                    st.success(f"Analysis successfully logged to database at {timestamp}", icon="✅")
+                    st.success(f"Precision scan completed at {timestamp}", icon="✅")
                     
-                    # Data Row 1
+                    # Row 1: Structure & Execution Type
                     c1, c2, c3 = st.columns(3)
                     with c1:
                         with st.container(border=True):
-                            st.markdown("<p class='metric-label'>Market Structure</p>", unsafe_allow_html=True)
+                            st.markdown("<p class='metric-label'>Structure</p>", unsafe_allow_html=True)
                             st.markdown(f"<p class='val-blue'>{ai_data['trend']}</p>", unsafe_allow_html=True)
                             st.caption(f"Confidence: **{ai_data['confidence']}**")
                     with c2:
                         with st.container(border=True):
-                            st.markdown("<p class='metric-label'>Entry Zone</p>", unsafe_allow_html=True)
-                            st.markdown(f"<p class='val-white'>{ai_data['entry_zone']}</p>", unsafe_allow_html=True)
-                            st.caption("Optimal Execution Area")
+                            st.markdown("<p class='metric-label'>Execution Style</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='font-size: 1.1rem; font-weight: 600; color: #60A5FA;'>{ai_data['entry_type']}</p>", unsafe_allow_html=True)
                     with c3:
                         with st.container(border=True):
-                            st.markdown("<p class='metric-label'>Key Resistance</p>", unsafe_allow_html=True)
-                            st.markdown(f"<p class='val-white'>{ai_data['resistance']}</p>", unsafe_allow_html=True)
-                            st.caption(f"Support Base: {ai_data['support']}")
-                            
-                    # Data Row 2 (Risk Management)
-                    r1, r2 = st.columns(2)
+                            st.markdown("<p class='metric-label'>Risk / Reward</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-white'>{ai_data['risk_reward']}</p>", unsafe_allow_html=True)
+                            st.caption("Optimized R:R Ratio")
+
+                    # Row 2: Entry & Risk Limits
+                    r1, r2, r3 = st.columns(3)
                     with r1:
                         with st.container(border=True):
-                            st.markdown("<p class='metric-label'>Target (Take Profit)</p>", unsafe_allow_html=True)
-                            st.markdown(f"<p class='val-green'>{ai_data['take_profit']}</p>", unsafe_allow_html=True)
+                            st.markdown("<p class='metric-label'>Entry Zone</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-white'>{ai_data['entry_zone']}</p>", unsafe_allow_html=True)
                     with r2:
                         with st.container(border=True):
-                            st.markdown("<p class='metric-label'>Risk Limit (Stop Loss)</p>", unsafe_allow_html=True)
+                            st.markdown("<p class='metric-label'>Stop Loss</p>", unsafe_allow_html=True)
                             st.markdown(f"<p class='val-red'>{ai_data['stop_loss']}</p>", unsafe_allow_html=True)
+                    with r3:
+                        with st.container(border=True):
+                            st.markdown("<p class='metric-label'>Invalidation Lvl</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-red' style='font-size: 1.3rem;'>{ai_data['invalidation_level']}</p>", unsafe_allow_html=True)
+
+                    # Row 3: Multi-Tier Take Profits
+                    tp_col1, tp_col2, tp_col3 = st.columns(3)
+                    with tp_col1:
+                        with st.container(border=True):
+                            st.markdown("<p class='metric-label'>TP 1 (Partial)</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-green'>{ai_data['tp1']}</p>", unsafe_allow_html=True)
+                    with tp_col2:
+                        with st.container(border=True):
+                            st.markdown("<p class='metric-label'>TP 2 (Standard)</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-green'>{ai_data['tp2']}</p>", unsafe_allow_html=True)
+                    with tp_col3:
+                        with st.container(border=True):
+                            st.markdown("<p class='metric-label'>TP 3 (Extended)</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p class='val-green'>{ai_data['tp3']}</p>", unsafe_allow_html=True)
                             
                     # Insight Card
                     with st.container(border=True):
-                        st.markdown("<p class='metric-label' style='color: #60A5FA;'>🧠 Institutional Insight</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p style='font-size: 1.1rem; padding-top: 10px;'>{ai_data['notes']}</p>", unsafe_allow_html=True)
+                        st.markdown("<p class='metric-label' style='color: #60A5FA;'>🧠 Setup Rationale</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 1.1rem; padding-top: 5px;'>{ai_data['notes']}</p>", unsafe_allow_html=True)
                         
                 except Exception as e:
                     st.error(f"System Error parsing output: {e}")
@@ -191,7 +208,7 @@ if page == "📊 Market Analyzer":
 # --- 6. TRADE JOURNAL (HISTORY) ---
 elif page == "📓 Trade Journal":
     st.markdown("<h2 style='color: #FFFFFF; font-weight: 600;'>Trade Journal & Logs</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Historical records of all executed chart analyses.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E; margin-top: -10px;'>Historical records of all precision scans.</p>", unsafe_allow_html=True)
     
     c.execute("SELECT * FROM history ORDER BY id DESC")
     records = c.fetchall()
@@ -201,17 +218,12 @@ elif page == "📓 Trade Journal":
     else:
         for record in records:
             with st.expander(f"SCAN {record[0]} | DATE: {record[1]} | TREND: {record[3]}"):
-                j_col1, j_col2, j_col3 = st.columns([1.5, 1, 1])
+                j_col1, j_col2 = st.columns([1, 2])
                 with j_col1:
                     st.image(record[2], use_container_width=True)
                 with j_col2:
-                    st.markdown("**Execution Plan**")
-                    st.write(f"Entry: `{record[5]}`")
-                    st.write(f"Stop Loss: `{record[6]}`")
-                    st.write(f"Take Profit: `{record[7]}`")
-                with j_col3:
-                    st.markdown("**Structural Data**")
-                    st.write(f"Confidence: `{record[4]}`")
-                    st.write(f"Support: `{record[8]}`")
-                    st.write(f"Resistance: `{record[9]}`")
-                st.info(f"**Insight:** {record[10]}")
+                    st.write(f"**Entry Zone:** `{record[5]}`")
+                    st.write(f"**Stop Loss:** `{record[6]}`")
+                    st.write(f"**Take Profit (TP2):** `{record[7]}`")
+                    st.write(f"**Support:** `{record[8]}` | **Resistance:** `{record[9]}`")
+                    st.info(f"**Rationale:** {record[10]}")
